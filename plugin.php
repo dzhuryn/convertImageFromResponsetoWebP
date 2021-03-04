@@ -1,6 +1,8 @@
+<?php
 use WebPConvert\WebPConvert;
 
 Event::listen('evolution.OnWebPagePrerender', function ($params) {
+
 
     $documentOutput = $params['documentOutput'];
 
@@ -8,6 +10,16 @@ Event::listen('evolution.OnWebPagePrerender', function ($params) {
     $cacheFolder = 'assets/cache/webp/';
     if (!$FS->checkDir(MODX_BASE_PATH . $cacheFolder)) {
         $FS->makeDir(MODX_BASE_PATH . $cacheFolder, 0775);
+    }
+    $cacheFolderHtAccessFile = MODX_BASE_PATH.$cacheFolder.'.htaccess';
+    if(!$FS->checkFile($cacheFolderHtAccessFile)){
+        file_put_contents($cacheFolderHtAccessFile,'
+        IndexIgnore */*
+        <Files *.php>
+            Order Deny,Allow
+            Deny from all
+        </Files>
+        ');
     }
 
     //$modx->logEvent(1,2,$_SERVER['HTTP_USER_AGENT'].' - '.$_GET['q'],$_GET['test'].' - webp');
@@ -63,7 +75,10 @@ Event::listen('evolution.OnWebPagePrerender', function ($params) {
     }
 
 
+    $documentOutput = preg_replace_callback('~<source[^>]+srcset=["\'](?<image>[^\'">]+)["\'][^>]*>~i', 'webpReplace', $documentOutput);
     $documentOutput = preg_replace_callback('~<img[^>]+src=["\'](?<image>[^\'">]+)["\'][^>]*>~i', 'webpReplace', $documentOutput);
+    $documentOutput = preg_replace_callback('~<img[^>]+data-src=["\'](?<image>[^\'">]+)["\'][^>]*>~i', 'webpReplace', $documentOutput);
+    $documentOutput = preg_replace_callback('~<img[^>]+data-lazy=["\'](?<image>[^\'">]+)["\'][^>]*>~i', 'webpReplace', $documentOutput);
     $documentOutput = preg_replace_callback('~\bbackground(-image)?\s*:(.*?)\(\s*(\'|")?(?<image>.*?)\3?\s*\)~i', 'webpReplace', $documentOutput);
 
     return $documentOutput;
