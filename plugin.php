@@ -4,7 +4,7 @@ use WebPConvert\WebPConvert;
 Event::listen('evolution.OnWebPagePrerender', function ($params) {
 
 
-    $documentOutput = $params['documentOutput'];
+    $documentOutput = evo()->documentOutput; ;
 
     $FS = \Helpers\FS::getInstance();
     $cacheFolder = 'assets/cache/webp/';
@@ -81,5 +81,5 @@ Event::listen('evolution.OnWebPagePrerender', function ($params) {
     $documentOutput = preg_replace_callback('~<img[^>]+data-lazy=["\'](?<image>[^\'">]+)["\'][^>]*>~i', 'webpReplace', $documentOutput);
     $documentOutput = preg_replace_callback('~\bbackground(-image)?\s*:(.*?)\(\s*(\'|")?(?<image>.*?)\3?\s*\)~i', 'webpReplace', $documentOutput);
 
-    return $documentOutput;
+    evo()->documentOutput = $documentOutput;
 });
